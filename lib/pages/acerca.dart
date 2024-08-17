@@ -10,7 +10,7 @@ class AcercaDe extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Acerca De"),
         centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
       ),
       drawer: const NavigationDrawerWidget(),
       body: _cuerpo(context),
@@ -23,7 +23,6 @@ class AcercaDe extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
       ),
       child: const Column(
         verticalDirection: VerticalDirection.up,

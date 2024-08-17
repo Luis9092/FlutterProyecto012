@@ -1,20 +1,19 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-// import 'package:pro_graduacion/Components/colors.dart';
 
 class InputField extends StatelessWidget {
   final String hint;
   final IconData icon;
-  final bool? passwordInvisible;
   final TextEditingController controller;
+  final FormFieldValidator<String>? validator;
 
   const InputField(
       {super.key,
       required this.hint,
       required this.icon,
       required this.controller,
-      required this.passwordInvisible});
+      this.validator});
 
   @override
   Widget build(BuildContext context) {
@@ -27,28 +26,30 @@ class InputField extends StatelessWidget {
       child: Center(
         child: TextFormField(
           controller: controller,
-          obscureText: passwordInvisible!,
           cursorColor: Theme.of(context).colorScheme.secondary,
           decoration: InputDecoration(
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.outline,
-                  width: 1,
-                  style: BorderStyle.solid),
-            ),
-            prefixIcon: Icon(icon),
-            contentPadding: const EdgeInsets.symmetric(vertical: 20),
-
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.secondary,
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                    width: 1,
+                    style: BorderStyle.solid),
               ),
-            ),
-            labelText: hint,
-
-            // suffixIcon: const Icon(Icons.no_encryption_gmailerrorred),
-            prefixIconColor: Theme.of(context).colorScheme.secondary,
-          ),
+              prefixIcon: Icon(icon),
+              contentPadding: const EdgeInsets.symmetric(vertical: 20),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+              labelText: hint,
+              prefixIconColor: Theme.of(context).colorScheme.secondary,
+              errorBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.error,
+                    width: 1,
+                    style: BorderStyle.solid),
+              )),
+          validator: validator,
         ),
       ),
     );

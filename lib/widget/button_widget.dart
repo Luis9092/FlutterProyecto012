@@ -16,8 +16,8 @@ class ButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 22),
-        height: 60,
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+        height: 56,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [
@@ -56,7 +56,7 @@ class ButtonWidget extends StatelessWidget {
               Text(
                 text,
                 style: const TextStyle(
-                    fontSize: 22, color: Color.fromARGB(255, 255, 255, 255)),
+                    fontSize: 20, color: Color.fromARGB(255, 255, 255, 255)),
               ),
             ],
           ),

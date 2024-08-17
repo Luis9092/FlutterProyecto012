@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pro_graduacion/pages/IniciarSesion.dart';
 import 'package:pro_graduacion/widget/navigation_drawe.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ElegirArchivo extends StatelessWidget {
   const ElegirArchivo({super.key});
@@ -33,7 +35,32 @@ class _InitState extends State<Init> {
     photo = await ImagePicker().pickImage(source: ImageSource.gallery);
     setState(() {});
   }
+  Future<void> _checkSession() async {
+    bool exists = await isSessionVariableExists('session_variable');
 
+    setState(() {
+      exists;
+      if (!exists) {
+        // Redirigir a la pantalla de inicio de sesión
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const IniciarSesion()),
+        );
+      }
+    });
+  }
+
+  // Función para comprobar la existencia de una variable de sesión
+  Future<bool> isSessionVariableExists(String key) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.containsKey(key);
+  }
+
+@override
+  void initState() {
+    // TODO: implement initState
+    _checkSession();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     // double screenHeight = MediaQuery.of(context).size.height;

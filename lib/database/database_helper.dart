@@ -19,6 +19,7 @@ class DatabaseHelper {
     final path = join(databasePath, databaseName);
     return openDatabase(path, version: 1, onCreate: (db, version) async {
       await db.execute(user);
+      
     });
   }
 
@@ -50,4 +51,7 @@ class DatabaseHelper {
     );
     return result.isNotEmpty? Users.fromMap(result.first) : null;
   }
+
+
+
 }
