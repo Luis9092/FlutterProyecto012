@@ -1,41 +1,48 @@
-
 import 'package:flutter/material.dart';
 
 class ButtonWidget extends StatelessWidget {
   final IconData icon;
   final String text;
   final VoidCallback onClicked;
+  final Color color1;
+  final Color color2;
+  final bool isborder;
 
-  const ButtonWidget({
-    super.key,
-    required this.text,
-    required this.icon,
-    required this.onClicked,
-  });
+  const ButtonWidget(
+      {super.key,
+      required this.text,
+      required this.icon,
+      required this.onClicked,
+      required this.color1,
+      required this.color2,
+      required this.isborder});
 
   @override
   Widget build(BuildContext context) => Container(
-    
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
         height: 56,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 0, 181, 160),
-              Color.fromARGB(255, 0, 255, 225)
+              // Color.fromARGB(255, 0, 181, 160),
+              // Color.fromARGB(255, 0, 255, 225)
+              color1, color2
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color.fromARGB(66, 106, 106, 106), // Color de la sombra
-              blurRadius: 4.0, // Desenfoque de la sombra
+              color: Theme.of(context).colorScheme.shadow, // Color de la sombra
+              blurRadius: 1.0, // Desenfoque de la sombra
               spreadRadius: 1.0, // Expansión de la sombra
-              offset: Offset(0, 2), // Desplazamiento de la sombra
+              offset: const Offset(0, 1), // Desplazamiento de la sombra
             ),
           ],
-          borderRadius: BorderRadius.circular(12),
+          border: isborder == false
+              ? Border.all(color: Colors.transparent)
+              : Border.all(color: Theme.of(context).colorScheme.background),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: TextButton(
           onPressed: onClicked,
@@ -56,7 +63,9 @@ class ButtonWidget extends StatelessWidget {
               Text(
                 text,
                 style: const TextStyle(
-                    fontSize: 20, color: Color.fromARGB(255, 255, 255, 255)),
+                  fontSize: 20,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),

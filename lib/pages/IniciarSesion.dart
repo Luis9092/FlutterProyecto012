@@ -40,8 +40,14 @@ class _IniciarSesionState extends State<IniciarSesion> {
     if (retorno == true) {
       if (!mounted) return;
       Usuario? usrDetails = await db.getUsers(email.text);
-      _saveSessionData(usrDetails?.idUsuario, email.text, usrDetails?.nombres,
-          usrDetails?.apellidos, usrDetails?.imagen, usrDetails?.theme);
+      _saveSessionData(
+          usrDetails?.idUsuario,
+          email.text,
+          usrDetails?.nombres,
+          usrDetails?.apellidos,
+          usrDetails?.imagen,
+          usrDetails?.theme,
+          usrDetails?.estado);
 
       AlertaMensaje.showSnackBar(
           context, "Verificacion exitosa :)", primaryColor);
@@ -69,19 +75,21 @@ class _IniciarSesionState extends State<IniciarSesion> {
   // Cargar datos de sesión
   Future<void> _loadSessionData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
     setState(() {
       prefs.getString('session_variable') ?? '';
       prefs.getInt('id') ?? 0;
       prefs.getString('nombres12') ?? '';
       prefs.getString('apellidos12') ?? '';
       prefs.getString('ima') ?? '';
+      prefs.getInt("estado") ?? 0;
       prefs.getInt('them') ?? 0;
     });
   }
 
   // Guardar datos de sesión
   Future<void> _saveSessionData(int? id, String correo, String? nombres,
-      String? apellidos, String? imagen, int? them) async {
+      String? apellidos, String? imagen, int? them, int? estado) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     await prefs.setInt('id', id!);
@@ -90,6 +98,7 @@ class _IniciarSesionState extends State<IniciarSesion> {
     await prefs.setString('apellidos12', apellidos!);
     await prefs.setString('ima', imagen!);
     await prefs.setInt('them', them!);
+    await prefs.setInt('estado', estado!);
 
     _loadSessionData(); // Cargar el nuevo valor
   }
@@ -186,6 +195,9 @@ class _IniciarSesionState extends State<IniciarSesion> {
                       }
                     },
                     icon: Icons.login,
+                    color1: ccolor1,
+                    color2: ccolor2,
+                    isborder: false,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

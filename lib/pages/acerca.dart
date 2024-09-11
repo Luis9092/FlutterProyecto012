@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pro_graduacion/Components/colors.dart';
 import 'package:pro_graduacion/widget/navigation_drawe.dart';
 
 class AcercaDe extends StatelessWidget {
@@ -10,7 +11,7 @@ class AcercaDe extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Acerca De"),
         centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.secondary,
+        backgroundColor: ccolor2,
       ),
       drawer: const NavigationDrawerWidget(),
       body: _cuerpo(context),

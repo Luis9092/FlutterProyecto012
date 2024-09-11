@@ -24,6 +24,7 @@ class Databasepro {
   idGaleriaResultado INTEGER PRIMARY KEY AUTOINCREMENT,
   idUser INTEGER,
   pathResultado TEXT,
+  cadenaResultado TEXT, 
   fechaHoraCreacion TEXT
   )
   ''';
@@ -62,7 +63,8 @@ class Databasepro {
         'apellidos',
         'correo',
         'imagen',
-        'theme'
+        'theme',
+        'estado'
       ],
       where: "correo = ?",
       whereArgs: [
@@ -72,12 +74,14 @@ class Databasepro {
     return result.isNotEmpty ? Usuario.fromMap(result.first) : null;
   }
 
-  Future <void> actualizarTheme(int id, int theme) async {
+  Future<void> actualizarTheme(int id, int theme) async {
     final db = await initDB();
 
     await db.update(
       'usuarioGenesis',
-      {'theme': theme},
+      {
+        'theme': theme,
+      },
       where: 'idUsuario = ?',
       whereArgs: [
         id,
@@ -85,15 +89,34 @@ class Databasepro {
     );
   }
 
- 
+  Future<int> actualizarImagenProfile(int id, String path, int estado) async {
+    final db = await initDB();
+    await db.update(
+        'usuarioGenesis',
+        {
+          'imagen': path,
+          'estado': estado,
+        },
+        where: 'idUsuario = ?',
+        whereArgs: [
+          id,
+        ]);
+
+    return 1;
+  }
 
   Future<int?> getSwitchValue() async {
     final db = await initDB();
-    final List<Map<String, dynamic>> maps =
-        await db.query('usuarioGenesis', where: 'idUsuario = ?', whereArgs: [1]);
+    final List<Map<String, dynamic>> maps = await db
+        .query('usuarioGenesis', where: 'idUsuario = ?', whereArgs: [1]);
     if (maps.isNotEmpty) {
       return maps.first['theme'] as int?;
     }
     return null;
+  }
+
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    final db = await initDB();
+    return await db.query('usuarioGenesis');
   }
 }

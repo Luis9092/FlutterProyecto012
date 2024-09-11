@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pro_graduacion/Components/colors.dart';
 import 'package:pro_graduacion/pages/IniciarSesion.dart';
+import 'package:pro_graduacion/widget/button_widget.dart';
 import 'package:pro_graduacion/widget/navigation_drawe.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,9 +15,9 @@ class TomarFoto extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         //drawer: NavigationDrawerWidget(),
         appBar: AppBar(
-          title: const Text('Abriendo Camara'),
+          title: const Text('Tomar Foto'),
           centerTitle: true,
-          backgroundColor: Theme.of(context).colorScheme.secondary,
+          backgroundColor: ccolor2,
         ),
         drawer: const NavigationDrawerWidget(),
         body: const Init(),
@@ -59,7 +61,6 @@ class _InitState extends State<Init> {
 
   @override
   void initState() {
-    // TODO: implement initState
     _checkSession();
     super.initState();
   }
@@ -77,14 +78,15 @@ class _InitState extends State<Init> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: () {
+                ButtonWidget(
+                  text: "Camara",
+                  icon: Icons.camera,
+                  onClicked: () {
                     getImageFromCamera();
                   },
-                  style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 70)),
-                  child: const Text("Camara"),
+                  color1: ccolor1,
+                  color2: ccolor2,
+                  isborder: false,
                 ),
                 const SizedBox(
                   height: 20,
@@ -106,8 +108,7 @@ class _InitState extends State<Init> {
                           ],
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 24.0, horizontal: 12.0),
+                          padding: const EdgeInsets.all(12),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(24.0),
                             child: Image.file(
@@ -120,21 +121,13 @@ class _InitState extends State<Init> {
                   height: 20,
                 ),
                 photo != null
-                    ? ElevatedButton(
-                        onPressed: () {
-                          // getImageFromCamera();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.secondary,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 16, horizontal: 70),
-                        ),
-                        child: Text(
-                          "INICIAR SCAN",
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
+                    ? ButtonWidget(
+                        text: "Iniciar Scan",
+                        icon: Icons.file_present,
+                        onClicked: () {},
+                        color1: ccolor1,
+                        color2: ccolor2,
+                        isborder: false,
                       )
                     : const SizedBox(
                         height: 10,

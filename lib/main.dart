@@ -1,5 +1,4 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -20,7 +19,7 @@ Future main() async {
   ]);
 
   runApp(ChangeNotifierProvider(
-    create: (context) => ThemeProvider(), 
+    create: (context) => ThemeProvider(),
     child: const MyApp(),
   ));
 }
@@ -48,7 +47,8 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   Future<void> _checkSession() async {
-    String key = 'session_variable'; // Cambia esto por la clave que estés buscando
+    String key =
+        'session_variable'; // Cambia esto por la clave que estés buscando
     bool exists = await checkIfPrefersExists(key);
 
     if (exists) {
@@ -56,22 +56,6 @@ class _MainPageState extends State<MainPage> {
         MaterialPageRoute(builder: (context) => const Home()),
       );
     }
-    //else {
-    //   print('La variable "prefers" no existe.');
-    //   //   Navigator.of(context).pushReplacement(
-    //   //     MaterialPageRoute(builder: (context) => const IniciarSesion()),
-    //   //   );
-    //   // }
-    // }
-
-    // setState(() {
-    // if (!exists) {
-    //   // Redirigir a la pantalla de inicio de sesión
-    //   Navigator.of(context).pushReplacement(
-    //     MaterialPageRoute(builder: (context) => const IniciarSesion()),
-    //   );
-    // }
-    //
   }
 
   Future<bool> checkIfPrefersExists(String key) async {
@@ -81,10 +65,11 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _checkSession();
+    ThemeProvider().inicializarTema();
   }
+
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -102,7 +87,8 @@ class _MainPageState extends State<MainPage> {
           child: SafeArea(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -186,6 +172,9 @@ class _MainPageState extends State<MainPage> {
                           ),
                         );
                       },
+                      color1: const Color.fromARGB(255, 0, 181, 160),
+                      color2: const Color.fromARGB(255, 0, 255, 225),
+                      isborder: false,
                     ),
                     ButtonWidget(
                       text: "Registrarse",
@@ -198,6 +187,9 @@ class _MainPageState extends State<MainPage> {
                           ),
                         );
                       },
+                      color1: const Color.fromARGB(255, 0, 181, 160),
+                      color2: const Color.fromARGB(255, 0, 255, 225),
+                      isborder: false,
                     ),
                     const SizedBox(
                       height: 44,

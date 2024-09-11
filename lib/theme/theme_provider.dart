@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pro_graduacion/theme/tema.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider with ChangeNotifier {
   ThemeData _themeData = lightMode;
@@ -19,6 +20,16 @@ class ThemeProvider with ChangeNotifier {
     } else {
       _istheme = false;
       themeData = lightMode;
+    }
+  }
+
+  Future<void> inicializarTema() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? tres = prefs.getInt("them") == 1 ? true : false;
+    if (tres == true) {
+      themeData = lightMode;
+    } else {
+      themeData = darkMode;
     }
   }
 }

@@ -37,16 +37,17 @@ class Usuario {
       this.apellidos,
       this.correo,
       this.imagen,
-      this.theme});
+      this.theme,
+      this.estado});
 
   factory Usuario.fromMap(Map<String, dynamic> json) => Usuario.view(
-        idUsuario: json["idUsuario"],
-        nombres: json["nombres"],
-        apellidos: json["apellidos"],
-        correo: json["correo"],
-        imagen: json["imagen"],
-        theme: json["theme"],
-      );
+      idUsuario: json["idUsuario"],
+      nombres: json["nombres"],
+      apellidos: json["apellidos"],
+      correo: json["correo"],
+      imagen: json["imagen"],
+      theme: json["theme"],
+      estado: json["estado"]);
 
   Map<String, dynamic> toMap() => {
         "idUsuario": idUsuario,

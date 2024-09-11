@@ -277,6 +277,9 @@ class _CrearCuentaState extends State<CrearCuenta> {
                       }
                     },
                     icon: Icons.person_add_alt_1,
+                    color1: ccolor1,
+                    color2: ccolor2,
+                    isborder: false,
                   ),
                   const SizedBox(
                     height: 30,

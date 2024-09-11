@@ -1,6 +1,15 @@
+// ignore_for_file: unrelated_type_equality_checks, use_build_context_synchronously, unused_local_variable
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pro_graduacion/Components/colors.dart';
+import 'package:pro_graduacion/database/databasepro.dart';
 import 'package:pro_graduacion/pages/IniciarSesion.dart';
+import 'package:pro_graduacion/pages/home.dart';
+import 'package:pro_graduacion/widget/alert_widget.dart';
 import 'package:pro_graduacion/widget/button_widget.dart';
 import 'package:pro_graduacion/widget/navigation_drawe.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +28,7 @@ class UserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.secondary,
+          backgroundColor: ccolor2,
           title: const Text("Foto De Perfil"),
           centerTitle: true,
         ),
@@ -31,21 +40,20 @@ class UserPage extends StatelessWidget {
 class CustomWidget extends StatefulWidget {
   final String message;
   final String name;
-  // const CustomWidget({super.key}, name);
   const CustomWidget({super.key, required this.message, required this.name});
 
   @override
   State<CustomWidget> createState() => _CustomWidgetState();
 }
 
+//AQUI COMIENZA
+
 class _CustomWidgetState extends State<CustomWidget> {
   Future<void> _checkSession() async {
     bool exists = await isSessionVariableExists('session_variable');
-
     setState(() {
       exists;
       if (!exists) {
-        // Redirigir a la pantalla de inicio de sesión
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const IniciarSesion()),
         );
@@ -59,28 +67,111 @@ class _CustomWidgetState extends State<CustomWidget> {
     return prefs.containsKey(key);
   }
 
+  String dos = "";
+  BuildContext? _dialogContext;
+
   @override
   void initState() {
-    _checkSession();
     super.initState();
+    _checkSession();
+    _loadSessionData();
   }
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-  }
-
-  String dos = "";
 //TOMAR FOTO CAMARA <FUNCION>
-  // XFile? photo;
+  XFile? photo;
 
   Future getImageFromCamera() async {
-    final photo = await ImagePicker().pickImage(source: ImageSource.camera);
+    photo = await ImagePicker().pickImage(source: ImageSource.camera);
+    if (photo != null) {
+      _cropImage(photo!.path);
+      setState(() {
+        Navigator.of(_dialogContext!).pop();
+      });
+    }
+  }
+
+  Future getImageFromGallery() async {
+    photo = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (photo != null) {
+      _cropImage(photo!.path);
+      setState(() {
+        Navigator.of(_dialogContext!).pop();
+      });
+    }
+  }
+
+  //FUNCION PARA OBTENER EL ESTADO DEL USUARIO
+  int? _estado;
+  bool _isLoading = true;
+  int? id;
+  String? pathImageActual = "";
+
+  Future<void> _loadSessionData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    id = prefs.getInt('id') ?? 0;
+    _estado = prefs.getInt("estado") ?? 0;
+    dos = prefs.getString("ima") ?? "";
+    pathImageActual = prefs.getString("ima") ?? "";
+
     setState(() {
-      dos = photo!.path;
+      _isLoading = false; // Cambia el estado de carga
     });
-    print("Imagen Phat $dos");
+  }
+
+  Future<void> _cropImage(String direccion) async {
+    CroppedFile? croppedImage = await ImageCropper().cropImage(
+      sourcePath: direccion,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Recortar Imagen',
+          toolbarColor: Colors.deepOrange,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(
+          title: 'Recortar Imagen',
+        ),
+      ],
+    );
+
+    if (croppedImage != null) {
+      setState(() {
+        dos = croppedImage.path;
+        ImageNotifier().updateImagePath(dos);
+      });
+    }
+  }
+
+  ///FUNCION PARA ACTUALIZAR IMAGEN
+  final db = Databasepro();
+  void actualizarImagenUser() async {
+    try {
+      // await Gal.putImage(dos, album: "Prueba1");
+      var retorno = await db.actualizarImagenProfile(id!, dos, 1);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("ima", dos);
+      if (retorno == 1) {
+        if (!mounted) return;
+
+        AlertaMensaje.showSnackBar(
+            context, "Imagen Actualizada Correctamente", ccolor2);
+        _reloadPage(context);
+      } else {
+        AlertaMensaje.showSnackBar(
+            context, "Error al actualizar la imagen", errorColor);
+      }
+    } catch (e) {
+      // Manejo de excepciones
+      AlertaMensaje.showSnackBar(context, "Ocurrió un error: $e", errorColor);
+    }
+  }
+
+  //RECARGAR PAGINA
+  void _reloadPage(BuildContext context) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const Home()),
+    );
   }
 
   @override
@@ -127,14 +218,20 @@ class _CustomWidgetState extends State<CustomWidget> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 24.0, horizontal: 12.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24.0),
-                    child: Image(
-                      image: AssetImage(widget.message),
-                      fit: BoxFit.contain,
-                    ),
-                  ),
+                      vertical: 18.0, horizontal: 12.0),
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(24.0),
+                          child: _estado == 0 && photo == null
+                              ? Image(
+                                  image: AssetImage(dos),
+                                  fit: BoxFit.contain,
+                                )
+                              : Image.file(
+                                  File(dos),
+                                ),
+                        ),
                 ),
               ),
               const SizedBox(
@@ -142,12 +239,37 @@ class _CustomWidgetState extends State<CustomWidget> {
               ),
               Expanded(
                 flex: -1,
-                child: ButtonWidget(
-                  icon: Icons.image_sharp,
-                  text: 'Actualizar Imagen',
-                  onClicked: () {
-                    _mostrarDialogo(context);
-                  },
+                child: Column(
+                  children: [
+                    ButtonWidget(
+                      icon: Icons.image_sharp,
+                      text: 'Elegir Foto',
+                      onClicked: () {
+                        _mostrarDialogo(context);
+                      },
+                      color1: Colors.transparent,
+                      color2: Theme.of(context).colorScheme.shadow,
+                      isborder: true,
+                      // color1: Color.fromARGB(255, 181, 0, 66),
+                      // color2: Color.fromARGB(255, 255, 0, 93),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    photo == null
+                        ? const SizedBox(
+                            height: 1,
+                          )
+                        : ButtonWidget(
+                            text: "Actualizar Imagen",
+                            icon: Icons.update,
+                            onClicked: () {
+                              actualizarImagenUser();
+                            },
+                            color1: ccolor1,
+                            color2: ccolor2,
+                            isborder: false),
+                  ],
                 ),
               ),
             ]),
@@ -161,6 +283,7 @@ class _CustomWidgetState extends State<CustomWidget> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        _dialogContext = context;
         return AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           icon: const Icon(Icons.photo),
@@ -173,20 +296,28 @@ class _CustomWidgetState extends State<CustomWidget> {
                 height: 12,
               ),
               ButtonWidget(
-                  text: "Mis Archivos",
-                  icon: Icons.document_scanner,
-                  onClicked: () {}),
+                text: "Mis Archivos",
+                icon: Icons.document_scanner,
+                onClicked: () {
+                  getImageFromGallery();
+                },
+                color1: ccolor1,
+                color2: ccolor2,
+                isborder: false,
+              ),
               const SizedBox(
                 height: 12,
               ),
               ButtonWidget(
-                  text: "Camara",
-                  icon: Icons.camera_alt_outlined,
-                  onClicked: () {
-                    getImageFromCamera();
-                    Provider.of<ImageNotifier>(context, listen: false)
-                        .updateImagePath(dos);
-                  }),
+                text: "Camara",
+                icon: Icons.camera_alt_outlined,
+                onClicked: () {
+                  getImageFromCamera();
+                },
+                color1: ccolor1,
+                color2: ccolor2,
+                isborder: false,
+              ),
             ],
           ),
           actions: <Widget>[
@@ -214,5 +345,8 @@ class ImageNotifier extends ChangeNotifier {
   }
 }
 
-
 //COMPROBAR EL WIDGET PARA QUE SE ENLAZE CON EL NOTIFIER
+//A LA HORA DE CREAR EL USUARIO, CREAR LA CARPETA Y LA IMAGEN, PARA QUE DESPUES AL ACTUALIZAR SOLO SE UTILICE UNA SOLA DIRECCION
+// LA CARPETA SERA SOLO PARA UN USUARIO
+
+//SOLO CON AGUARDAR LA DIRECCION DE LA IMAGEN, YA SE CREA AUTOMATICAMENTE
