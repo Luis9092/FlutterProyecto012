@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pro_graduacion/Components/colors.dart';
-import 'package:pro_graduacion/database/databasepro.dart';
 import 'package:pro_graduacion/pages/IniciarSesion.dart';
 import 'package:pro_graduacion/pages/home.dart';
 import 'package:pro_graduacion/widget/alert_widget.dart';
@@ -50,7 +50,7 @@ class CustomWidget extends StatefulWidget {
 
 class _CustomWidgetState extends State<CustomWidget> {
   Future<void> _checkSession() async {
-    bool exists = await isSessionVariableExists('session_variable');
+    bool exists = await isSessionVariableExists('correovar');
     setState(() {
       exists;
       if (!exists) {
@@ -77,29 +77,6 @@ class _CustomWidgetState extends State<CustomWidget> {
     _loadSessionData();
   }
 
-//TOMAR FOTO CAMARA <FUNCION>
-  XFile? photo;
-
-  Future getImageFromCamera() async {
-    photo = await ImagePicker().pickImage(source: ImageSource.camera);
-    if (photo != null) {
-      _cropImage(photo!.path);
-      setState(() {
-        Navigator.of(_dialogContext!).pop();
-      });
-    }
-  }
-
-  Future getImageFromGallery() async {
-    photo = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (photo != null) {
-      _cropImage(photo!.path);
-      setState(() {
-        Navigator.of(_dialogContext!).pop();
-      });
-    }
-  }
-
   //FUNCION PARA OBTENER EL ESTADO DEL USUARIO
   int? _estado;
   bool _isLoading = true;
@@ -118,19 +95,59 @@ class _CustomWidgetState extends State<CustomWidget> {
     });
   }
 
+//TOMAR FOTO CAMARA <FUNCION>
+  XFile? photo;
+
+  Future getImageFromCamera() async {
+    photo = await ImagePicker().pickImage(source: ImageSource.camera);
+    if (photo != null) {
+      _cropImage(photo!.path);
+      setState(() {
+        dos = photo!.path;
+        ImageNotifier().updateImagePath(photo!.path);
+        Navigator.of(_dialogContext!).pop();
+      });
+    }
+  }
+
+  Future getImageFromGallery() async {
+    photo = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (photo != null) {
+      _cropImage(photo!.path);
+      setState(() {
+        dos = photo!.path;
+        ImageNotifier().updateImagePath(photo!.path);
+
+        Navigator.of(_dialogContext!).pop();
+      });
+    }
+  }
+
   Future<void> _cropImage(String direccion) async {
     CroppedFile? croppedImage = await ImageCropper().cropImage(
       sourcePath: direccion,
       uiSettings: [
         AndroidUiSettings(
-          toolbarTitle: 'Recortar Imagen',
+          toolbarTitle: 'Cropper',
           toolbarColor: Colors.deepOrange,
           toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.original,
           lockAspectRatio: false,
+          aspectRatioPresets: [
+            CropAspectRatioPreset.original,
+            CropAspectRatioPreset.square,
+            CropAspectRatioPresetCustom(),
+          ],
         ),
         IOSUiSettings(
-          title: 'Recortar Imagen',
+          title: 'Cropper',
+          aspectRatioPresets: [
+            CropAspectRatioPreset.original,
+            CropAspectRatioPreset.square,
+            CropAspectRatioPresetCustom(), // IMPORTANT: iOS supports only one custom aspect ratio in preset list
+          ],
+        ),
+        WebUiSettings(
+          context: context,
         ),
       ],
     );
@@ -138,34 +155,47 @@ class _CustomWidgetState extends State<CustomWidget> {
     if (croppedImage != null) {
       setState(() {
         dos = croppedImage.path;
-        ImageNotifier().updateImagePath(dos);
+        ImageNotifier().updateImagePath(croppedImage.path);
       });
+      _saveImage(croppedImage.path);
     }
+  }
+
+  Future<void> _saveImage(String imagePath) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final name = DateTime.now().millisecondsSinceEpoch.toString();
+    final File newImage = File('${directory.path}/$name.png');
+
+    await File(imagePath).copy(newImage.path);
+    setState(() {
+      dos = newImage.path;
+      ImageNotifier().updateImagePath(newImage.path);
+    });
   }
 
   ///FUNCION PARA ACTUALIZAR IMAGEN
-  final db = Databasepro();
-  void actualizarImagenUser() async {
-    try {
-      // await Gal.putImage(dos, album: "Prueba1");
-      var retorno = await db.actualizarImagenProfile(id!, dos, 1);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setString("ima", dos);
-      if (retorno == 1) {
-        if (!mounted) return;
+  // final db = Databasepro();
+  // void actualizarImagenUser() async {
+  //   try {
+  //     // await Gal.putImage(dos, album: "Prueba1");
+  //     var retorno = await db.actualizarImagenProfile(id!, dos, 1);
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     prefs.setString("ima", dos);
+  //     if (retorno == 1) {
+  //       if (!mounted) return;
 
-        AlertaMensaje.showSnackBar(
-            context, "Imagen Actualizada Correctamente", ccolor2);
-        _reloadPage(context);
-      } else {
-        AlertaMensaje.showSnackBar(
-            context, "Error al actualizar la imagen", errorColor);
-      }
-    } catch (e) {
-      // Manejo de excepciones
-      AlertaMensaje.showSnackBar(context, "Ocurrió un error: $e", errorColor);
-    }
-  }
+  //       AlertaMensaje.showSnackBar(
+  //           context, "Imagen Actualizada Correctamente", ccolor2);
+  //       _reloadPage(context);
+  //     } else {
+  //       AlertaMensaje.showSnackBar(
+  //           context, "Error al actualizar la imagen", errorColor);
+  //     }
+  //   } catch (e) {
+  //     // Manejo de excepciones
+  //     AlertaMensaje.showSnackBar(context, "Ocurrió un error: $e", errorColor);
+  //   }
+  // }
 
   //RECARGAR PAGINA
   void _reloadPage(BuildContext context) {
@@ -218,19 +248,27 @@ class _CustomWidgetState extends State<CustomWidget> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 18.0, horizontal: 12.0),
+                      vertical: 8, horizontal: 8.0),
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(24.0),
                           child: _estado == 0 && photo == null
-                              ? Image(
-                                  image: AssetImage(dos),
-                                  fit: BoxFit.contain,
-                                )
-                              : Image.file(
-                                  File(dos),
-                                ),
+                              ? InteractiveViewer(
+                                minScale: 0.5,
+                                maxScale: 4.0,
+                                child: Image(
+                                    image: AssetImage(dos),
+                                    fit: BoxFit.contain,
+                                  ),
+                              )
+                              : InteractiveViewer(
+                                minScale: 0.5,
+                                maxScale: 4.0,
+                                child: Image.file(
+                                    File(dos),
+                                  ),
+                              ),
                         ),
                 ),
               ),
@@ -264,7 +302,7 @@ class _CustomWidgetState extends State<CustomWidget> {
                             text: "Actualizar Imagen",
                             icon: Icons.update,
                             onClicked: () {
-                              actualizarImagenUser();
+                              // actualizarImagenUser();
                             },
                             color1: ccolor1,
                             color2: ccolor2,
@@ -350,3 +388,11 @@ class ImageNotifier extends ChangeNotifier {
 // LA CARPETA SERA SOLO PARA UN USUARIO
 
 //SOLO CON AGUARDAR LA DIRECCION DE LA IMAGEN, YA SE CREA AUTOMATICAMENTE
+
+class CropAspectRatioPresetCustom implements CropAspectRatioPresetData {
+  @override
+  (int, int)? get data => (2, 3);
+
+  @override
+  String get name => '2x3 (customized)';
+}

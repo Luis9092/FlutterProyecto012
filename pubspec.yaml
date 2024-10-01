@@ -45,6 +45,10 @@ dependencies:
   gal: ^2.3.0
   permission_handler: ^11.3.1
   image_cropper: ^8.0.1
+  carousel_slider: ^5.0.0
+  google_fonts: ^6.2.1
+  motion_tab_bar: ^2.0.4
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

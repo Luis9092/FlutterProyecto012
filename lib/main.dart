@@ -78,7 +78,7 @@ class _MainPageState extends State<MainPage> {
         backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
           title: const Text(
-            MyApp.title,
+          ""
           ),
           centerTitle: true,
         ),
@@ -163,7 +163,7 @@ class _MainPageState extends State<MainPage> {
                     ),
                     ButtonWidget(
                       text: "Iniciar Sesion",
-                      icon: Icons.login,
+                      icon: Icons.login_sharp,
                       onClicked: () {
                         Navigator.push(
                           context,
@@ -178,7 +178,7 @@ class _MainPageState extends State<MainPage> {
                     ),
                     ButtonWidget(
                       text: "Registrarse",
-                      icon: Icons.login,
+                      icon: Icons.group_add,
                       onClicked: () {
                         Navigator.push(
                           context,
@@ -211,3 +211,6 @@ class _MainPageState extends State<MainPage> {
         ),
       );
 }
+
+
+// AGREGAR FUNCION PARA QUE NO SE AUTENTIQUE DOS VECES CON EL MISMO CORREO

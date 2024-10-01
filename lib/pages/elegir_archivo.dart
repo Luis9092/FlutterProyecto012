@@ -39,7 +39,7 @@ class _InitState extends State<Init> {
   }
 
   Future<void> _checkSession() async {
-    bool exists = await isSessionVariableExists('session_variable');
+    bool exists = await isSessionVariableExists('correovar');
 
     setState(() {
       exists;
@@ -64,6 +64,15 @@ class _InitState extends State<Init> {
     _checkSession();
     super.initState();
   }
+
+  String? selectedOption;
+
+  final List<String> options = [
+    'Ingles',
+    'Español',
+    'Portugues',
+    'Frances',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -116,11 +125,15 @@ class _InitState extends State<Init> {
                               vertical: 12, horizontal: 12.0),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(24.0),
-                            child: Image.file(
-                              File(photo!.path),
-                              // height: screenHeight,
-                              width: double.infinity,
-                              fit: BoxFit.contain,
+                            child: InteractiveViewer(
+                              minScale: 0.5,
+                              maxScale: 4.0,
+                              child: Image.file(
+                                File(photo!.path),
+                                // height: screenHeight,
+                                width: double.infinity,
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         ),
@@ -140,6 +153,48 @@ class _InitState extends State<Init> {
                     : const SizedBox(
                         height: 10,
                       ),
+                const SizedBox(
+                  height: 12,
+                ),
+                const Divider(color: Colors.grey),
+                const Text(
+                  "→ Elegir el idioma de la traducción ←",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                DropdownButtonFormField<String>(
+                  hint: const Text('Elegir idioma una opción'),
+                  value: selectedOption,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: ccolor2, style: BorderStyle.solid, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: ccolor2, style: BorderStyle.solid, width: 1),
+                    ),
+                  ),
+                  icon: const Icon(Icons.arrow_drop_down),
+                  iconSize: 24,
+                  elevation: 16,
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
+                  borderRadius: BorderRadius.circular(12),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedOption = newValue;
+                    });
+                  },
+                  items: options.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
               ],
             ),
           ),

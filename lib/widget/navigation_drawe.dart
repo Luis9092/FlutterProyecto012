@@ -5,10 +5,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 import 'package:pro_graduacion/Components/colors.dart';
-import 'package:pro_graduacion/database/databasepro.dart';
 import 'package:pro_graduacion/pages/IniciarSesion.dart';
 import 'package:pro_graduacion/pages/acerca.dart';
 import 'package:pro_graduacion/pages/elegir_archivo.dart';
+import 'package:pro_graduacion/pages/home.dart';
+import 'package:pro_graduacion/pages/page_resultado.dart';
 import 'package:pro_graduacion/pages/tomar_foto.dart';
 import 'package:pro_graduacion/pages/user_page.dart';
 import 'package:pro_graduacion/theme/theme_provider.dart';
@@ -37,7 +38,7 @@ class NavigationDrawerWidget extends StatefulWidget {
 
 class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
   bool isToggled = false;
-  final db = Databasepro();
+  // final db = Databasepro();
 
   void toggleSwitch(bool value) {
     setState(() {
@@ -50,28 +51,24 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
   String? _storedValue;
   String? _nombres12;
   String? _apellidos12;
-  String? _pathImagenProfile;
+  String? _pathImagenProfile = "assets/images/arb.png";
   bool _isLoading = true; // Estado de carga
   int? _estado;
+  String nombreUsuario = "";
+  String correoUsurio = "";
 
   @override
   void initState() {
     super.initState();
-    _loadSessionData();
     ThemeProvider().inicializarTema();
+    _cargarDataLogin();
   }
 
-  Future<void> _loadSessionData() async {
+  Future<void> _cargarDataLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    _id = prefs.getInt("id") ?? _id;
-    _storedValue = prefs.getString('session_variable') ?? _storedValue;
-    _nombres12 = prefs.getString("nombres12") ?? _nombres12;
-    _apellidos12 = prefs.getString("apellidos12") ?? _apellidos12;
-    _pathImagenProfile = prefs.getString("ima") ?? _pathImagenProfile;
-    _estado = prefs.getInt("estado") ?? 0;
-
     setState(() {
+      nombreUsuario = prefs.getString('nombresvar') ?? 'Invitado';
+      correoUsurio = prefs.getString('correovar') ?? 'Invitado';
       _isLoading = false;
     });
   }
@@ -88,17 +85,17 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
     );
   }
 
-  void _updateSwitchValue(int id, bool value) async {
-    await db.actualizarTheme(id, value ? 1 : 0);
+  void _updateSwitchValue(bool value) async {
+    // await db.actualizarTheme(id, value ? 1 : 0);
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt("them", value ? 1 : 0);
+    prefs.setInt("themavar", value ? 1 : 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final name = "$_nombres12 $_apellidos12";
-    final email = "$_storedValue";
+    final name = nombreUsuario;
+    final email = correoUsurio;
     final urlImage = _pathImagenProfile;
     return Drawer(
       child: _isLoading
@@ -127,35 +124,36 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                         const SizedBox(height: 12),
                         buildMenuItem(
                           context: context,
+                          text: 'Inicio',
+                          icon: Icons.camera,
+                          color: Color.fromARGB(255, 153, 0, 255),
+                          onClicked: () => selectedItem(context, 0),
+                        ),
+                        const SizedBox(height: 16),
+                        buildMenuItem(
+                          context: context,
                           text: 'Tomar Foto',
                           icon: Icons.camera,
-                          color: const Color.fromARGB(255, 0, 217, 255),
-                          onClicked: () => selectedItem(context, 0),
+                          color: Color.fromARGB(255, 0, 217, 255),
+                          onClicked: () => selectedItem(context, 1),
                         ),
                         const SizedBox(height: 16),
                         buildMenuItem(
                           context: context,
                           text: 'Elegir Archivo',
                           icon: Icons.collections_sharp,
-                          color: Colors.redAccent,
-                          onClicked: () => selectedItem(context, 1),
+                          color: Color.fromARGB(255, 255, 37, 69),
+                          onClicked: () => selectedItem(context, 2),
                         ),
                         const SizedBox(height: 16),
                         buildMenuItem(
                           context: context,
                           text: 'Resultados',
                           icon: Icons.table_chart,
-                          color: Color.fromARGB(255, 0, 207, 79),
-                          onClicked: () => selectedItem(context, 2),
-                        ),
-                        const SizedBox(height: 16),
-                        buildMenuItem(
-                          context: context,
-                          text: 'Anotaciones',
-                          icon: Icons.notes,
-                          color: Colors.amber,
+                          color: Color.fromARGB(255, 0, 255, 128),
                           onClicked: () => selectedItem(context, 3),
                         ),
+                        const SizedBox(height: 16),
                         const SizedBox(height: 24),
                         const Divider(color: Colors.grey),
                         const SizedBox(height: 24),
@@ -203,8 +201,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                               Provider.of<ThemeProvider>(context, listen: false)
                                   .toggleTheme();
                               setState(() {
-                                _updateSwitchValue(_id!, position);
-                                _loadSessionData();
+                                _updateSwitchValue(position);
                               });
                             },
                             onTap: () {},
@@ -244,32 +241,31 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
         onTap: onClicked,
         child: Container(
           padding: padding.add(
-            const EdgeInsets.symmetric(vertical: 12),
+            const EdgeInsets.symmetric(vertical: 8),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _estado == 0
-                  ? CircleAvatar(
-                      radius: 80,
-                      backgroundImage: AssetImage(urlImage),
-                    )
-                  : CircleAvatar(
-                      radius: 85,
-                      backgroundColor: ccolor2,
-                      child: Padding(
-                        padding: EdgeInsets.all(6),
-                        child: ClipOval(
-                          child: SizedBox.fromSize(
-                            size: const Size.fromRadius(85),
-                            child: Image.file(
-                              File(urlImage),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
+              // _estado == 0
+              //     ?
+
+              CircleAvatar(
+                radius: 90,
+                backgroundColor: ccolor2,
+                child: Padding(
+                  padding: EdgeInsets.all(3),
+                  child: ClipOval(
+                    child: SizedBox.fromSize(
+                      size: const Size.fromRadius(92),
+                      child: Image.asset(
+                        urlImage,
+                        fit: BoxFit.cover,
                       ),
                     ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 12),
               Text(
                 name,
@@ -320,7 +316,9 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
               ),
             ],
           ),
-          child: Icon(icon),
+          child: Icon(
+            icon,
+          ),
         ),
         title: Text(
           text,
@@ -341,12 +339,22 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
       // TOMAR FOTO
       case 0:
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => const TomarFoto(),
+          builder: (context) => const Home(),
         ));
         break;
       case 1:
         Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => const TomarFoto(),
+        ));
+        break;
+      case 2:
+        Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => const ElegirArchivo(),
+        ));
+        break;
+      case 3:
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => const Resultados(),
         ));
         break;
 
@@ -356,5 +364,23 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
         ));
         break;
     }
+  }
+}
+
+class UsuarioProvider extends ChangeNotifier {
+  String _nombreUsuario = '';
+  String get nombreUsuario => _nombreUsuario;
+
+  String _correoUsuario = '';
+  String get correoUsuario => _correoUsuario;
+
+  set nombreUsuario(String nuevoNombre) {
+    _nombreUsuario = nuevoNombre;
+    notifyListeners();
+  }
+
+  set correoUsuario(String nuevoNombre) {
+    _correoUsuario = nuevoNombre;
+    notifyListeners();
   }
 }
