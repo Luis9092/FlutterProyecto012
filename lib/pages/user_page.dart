@@ -7,6 +7,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pro_graduacion/Components/colors.dart';
+import 'package:pro_graduacion/model/imagen.dart';
 import 'package:pro_graduacion/pages/IniciarSesion.dart';
 import 'package:pro_graduacion/pages/home.dart';
 import 'package:pro_graduacion/widget/alert_widget.dart';
@@ -74,7 +75,6 @@ class _CustomWidgetState extends State<CustomWidget> {
   void initState() {
     super.initState();
     _checkSession();
-    _loadSessionData();
   }
 
   //FUNCION PARA OBTENER EL ESTADO DEL USUARIO
@@ -82,18 +82,8 @@ class _CustomWidgetState extends State<CustomWidget> {
   bool _isLoading = true;
   int? id;
   String? pathImageActual = "";
-
-  Future<void> _loadSessionData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    id = prefs.getInt('id') ?? 0;
-    _estado = prefs.getInt("estado") ?? 0;
-    dos = prefs.getString("ima") ?? "";
-    pathImageActual = prefs.getString("ima") ?? "";
-
-    setState(() {
-      _isLoading = false; // Cambia el estado de carga
-    });
-  }
+  
+ 
 
 //TOMAR FOTO CAMARA <FUNCION>
   XFile? photo;
@@ -172,37 +162,15 @@ class _CustomWidgetState extends State<CustomWidget> {
       ImageNotifier().updateImagePath(newImage.path);
     });
   }
-
-  ///FUNCION PARA ACTUALIZAR IMAGEN
-  // final db = Databasepro();
-  // void actualizarImagenUser() async {
-  //   try {
-  //     // await Gal.putImage(dos, album: "Prueba1");
-  //     var retorno = await db.actualizarImagenProfile(id!, dos, 1);
-  //     SharedPreferences prefs = await SharedPreferences.getInstance();
-  //     prefs.setString("ima", dos);
-  //     if (retorno == 1) {
-  //       if (!mounted) return;
-
-  //       AlertaMensaje.showSnackBar(
-  //           context, "Imagen Actualizada Correctamente", ccolor2);
-  //       _reloadPage(context);
-  //     } else {
-  //       AlertaMensaje.showSnackBar(
-  //           context, "Error al actualizar la imagen", errorColor);
-  //     }
-  //   } catch (e) {
-  //     // Manejo de excepciones
-  //     AlertaMensaje.showSnackBar(context, "Ocurrió un error: $e", errorColor);
-  //   }
+ 
+  //RECARGAR PAGINA
+  // void _reloadPage(BuildContext context) {
+  //   Navigator.of(context).pushReplacement(
+  //     MaterialPageRoute(builder: (context) => const Home()),
+  //   );
   // }
 
-  //RECARGAR PAGINA
-  void _reloadPage(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const Home()),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
