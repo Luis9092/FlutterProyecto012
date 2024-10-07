@@ -88,7 +88,7 @@ class _IniciarSesionState extends State<IniciarSesion> {
                 ),
                 const Text(
                   "Autenticarse",
-                  style: TextStyle(color: primaryColor, fontSize: 40),
+                  style: TextStyle(color: primaryColor, fontSize: 40, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(
                   height: 30,

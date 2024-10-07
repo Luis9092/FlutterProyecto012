@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:pro_graduacion/Components/colors.dart';
 // import 'package:pro_graduacion/Components/colors.dart';
 
 class InputFieldPass extends StatefulWidget {
@@ -39,10 +40,9 @@ class _InputFieldPassState extends State<InputFieldPass> {
       alignment: Alignment.topCenter,
       child: Center(
         child: TextFormField(
-
           controller: widget.controller,
           obscureText: _obscureText,
-          cursorColor: Theme.of(context).colorScheme.secondary,
+          cursorColor: primaryColor,
           decoration: InputDecoration(
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
@@ -52,9 +52,9 @@ class _InputFieldPassState extends State<InputFieldPass> {
             ),
             prefixIcon: Icon(widget.icon),
             contentPadding: const EdgeInsets.symmetric(vertical: 20),
-            focusedBorder: OutlineInputBorder(
+            focusedBorder: const OutlineInputBorder(
               borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.secondary,
+                color: primaryColor,
               ),
             ),
             labelText: widget.hint,
@@ -63,7 +63,7 @@ class _InputFieldPassState extends State<InputFieldPass> {
                   _obscureText ? Icons.visibility : Icons.visibility_off,
                 ),
                 onPressed: _togglePasswordVisibility),
-            prefixIconColor: Theme.of(context).colorScheme.secondary,
+            prefixIconColor: primaryColor,
           ),
         ),
       ),

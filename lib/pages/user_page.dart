@@ -29,7 +29,7 @@ class UserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          backgroundColor: ccolor2,
+          backgroundColor: ccolor1,
           title: const Text("Foto De Perfil"),
           centerTitle: true,
         ),
@@ -82,8 +82,6 @@ class _CustomWidgetState extends State<CustomWidget> {
   bool _isLoading = true;
   int? id;
   String? pathImageActual = "";
-  
- 
 
 //TOMAR FOTO CAMARA <FUNCION>
   XFile? photo;
@@ -162,15 +160,13 @@ class _CustomWidgetState extends State<CustomWidget> {
       ImageNotifier().updateImagePath(newImage.path);
     });
   }
- 
+
   //RECARGAR PAGINA
   // void _reloadPage(BuildContext context) {
   //   Navigator.of(context).pushReplacement(
   //     MaterialPageRoute(builder: (context) => const Home()),
   //   );
   // }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -215,28 +211,28 @@ class _CustomWidgetState extends State<CustomWidget> {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 8.0),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 8.0),
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(24.0),
                           child: _estado == 0 && photo == null
                               ? InteractiveViewer(
-                                minScale: 0.5,
-                                maxScale: 4.0,
-                                child: Image(
+                                  minScale: 0.5,
+                                  maxScale: 4.0,
+                                  child: Image(
                                     image: AssetImage(dos),
                                     fit: BoxFit.contain,
                                   ),
-                              )
+                                )
                               : InteractiveViewer(
-                                minScale: 0.5,
-                                maxScale: 4.0,
-                                child: Image.file(
+                                  minScale: 0.5,
+                                  maxScale: 4.0,
+                                  child: Image.file(
                                     File(dos),
                                   ),
-                              ),
+                                ),
                         ),
                 ),
               ),

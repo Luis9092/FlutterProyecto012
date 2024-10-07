@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pro_graduacion/Components/colors.dart';
 import 'package:pro_graduacion/model/imagen.dart';
 import 'package:pro_graduacion/pages/IniciarSesion.dart';
+import 'package:pro_graduacion/widget/alert_widget.dart';
 import 'package:pro_graduacion/widget/button_widget.dart';
 import 'package:pro_graduacion/widget/navigation_drawe.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +20,7 @@ class TomarFoto extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Tomar Foto'),
           centerTitle: true,
-          backgroundColor: ccolor2,
+          backgroundColor: ccolor1,
         ),
         drawer: const NavigationDrawerWidget(),
         body: const Init(),
@@ -44,11 +44,37 @@ class _InitState extends State<Init> {
 
   Future getImageFromCamera() async {
     photo = await ImagePicker().pickImage(source: ImageSource.camera);
+
     setState(() {
-      _imageFile = File(photo!.path);
-      _imageName = photo!.name;
+      if (photo != null) {
+        cambiarNombreImagen();
+      }
     });
-    _imageName = photo!.name;
+    // _imageName = photo!.name;
+  }
+
+  Future<int> cambiarNombreImagen() async {
+   
+    if (photo != null) {
+      final directory = await getTemporaryDirectory();
+      DateTime now = DateTime.now();
+      String currentTime = '${now.second}${now.minute}${now.microsecond}';
+      String finalNombreImagen = "${currentTime}tomada.png";
+
+      String newPath = '${directory.path}/$finalNombreImagen';
+
+      // Renombrar la imagen
+      File originalFile = File(photo!.path);
+      await originalFile.copy(newPath);
+
+      setState(() {
+        _imageFile = File(newPath); // Actualiza la imagen
+        _imageName = finalNombreImagen;
+      });
+      return 1;
+    } else {
+      return 0;
+    }
   }
 
   // BuildContext? _dialogContext;
@@ -76,12 +102,12 @@ class _InitState extends State<Init> {
   @override
   void initState() {
     _checkSession();
+    traerIdiomas();
     super.initState();
-    TraerIdiomas();
   }
 
-  Future<void> TraerIdiomas() async {
-    Imagen imagen = Imagen();
+  Future<void> traerIdiomas() async {
+    imagen = Imagen();
     List<dynamic> items = [];
     items = await imagen.mostrarIdiomas();
 
@@ -110,45 +136,63 @@ class _InitState extends State<Init> {
 
   void _createImageInstance() async {
     if (_imageFile != null && _imageName != null) {
-      Imagen imagen = Imagen.constructorImagen(
+      imagen = Imagen.constructorImagen(
         archivo: _imageFile!,
         nombre: _imageName!,
       );
       imagen.opcionSeleccionada = selectedOption;
 
-      int retorno = await imagen.iniciarTodo();
-      print(selectedOption);
+      int retorno = await imagen.uploadImage(_imageFile!, _imageName!);
 
       if (retorno == 1) {
+        AlertaMensaje.showSnackBar(
+            // ignore: use_build_context_synchronously
+            context,
+            "Subiendo Imagen Al Servidor...",
+            Colors.orange);
+        int retorno1 = await imagen.iniciarTodo();
+
         String fileEscaneado = imagen.fileEscaneado(_imageName!);
         String fileTraducido = imagen.fileTraducido(_imageName!);
 
-        setState(() {
-          if (fileEscaneado != "") {
-            imageUrl = fileEscaneado;
-            imageUrl2 = fileTraducido;
-            textocapturado = imagen.textoescaneado!;
-            textotraducido = imagen.textotraducido!;
-            List<dynamic> items = [];
-            items = imagen.separarCadena(textocapturado, textotraducido);
+        if (retorno1 == 1) {
+          AlertaMensaje.showSnackBar(
+              // ignore: use_build_context_synchronously
+              context,
+              "Traduciendo texto...",
+              Colors.orange);
+          setState(() {
+            if (fileEscaneado != "") {
+              items2.clear();
+              imageUrl = fileEscaneado;
+              imageUrl2 = fileTraducido;
+              textocapturado = imagen.textoescaneado!;
+              textotraducido = imagen.textotraducido!;
+              List<dynamic> items = [];
 
-            for (var t in items) {
-              print(t);
-              String cuenta = t["contador"];
-              String titulo = t["titulo"];
-              String tra = t["descripcion"];
-              var adde = {
-                'contador': cuenta,
-                'titulo': "${"'$titulo"}'",
-                'descripcion': "${"'$tra"}'"
-              };
-              items2.add(adde);
+              items = imagen.separarCadena(textocapturado, textotraducido);
+
+              for (var t in items) {
+                String cuenta = t["contador"];
+                String titulo = t["titulo"];
+                String tra = t["descripcion"];
+                var adde = {
+                  'contador': cuenta,
+                  'titulo': "${"'$titulo"}'",
+                  'descripcion': "${"'$tra"}'"
+                };
+                items2.add(adde);
+              }
             }
-          }
-        });
+          });
+        }
+      } else {
+        AlertaMensaje.showSnackBar(
+            // ignore: use_build_context_synchronously
+            context,
+            "Texto no encontrado en la imagen",
+            errorColor);
       }
-
-      print('Imagen creada: ${imagen.nombre}');
     } else {
       print('No hay imagen para crear la instancia.');
     }
@@ -162,6 +206,7 @@ class _InitState extends State<Init> {
       'descripcion': 'Genesis',
     },
   );
+
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider(
       create: (context) => TomarfotoProvider(),
@@ -183,15 +228,18 @@ class _InitState extends State<Init> {
                     onClicked: () {
                       getImageFromCamera();
                     },
-                    color1: ccolor1,
-                    color2: ccolor2,
+                    color1: ccolor2,
+                    color2: ccolor1,
                     isborder: false,
                   ),
                   const SizedBox(
                     height: 24,
                   ),
                   photo == null
-                      ? const Icon(Icons.image)
+                      ? const Icon(
+                          Icons.photo,
+                          color: ccolor1,
+                        )
                       : Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12.0),
@@ -223,7 +271,6 @@ class _InitState extends State<Init> {
                             ),
                           ),
                         ),
-                  Text(_imageName ?? ""),
                   const SizedBox(
                     height: 6,
                   ),
@@ -231,11 +278,14 @@ class _InitState extends State<Init> {
                       ? ButtonWidget(
                           text: "Iniciar Scan",
                           icon: Icons.file_present,
-                          onClicked: () {
-                            _createImageInstance();
+                          onClicked: () async {
+                            int retorno = await cambiarNombreImagen();
+                            if (retorno == 1) {
+                              _createImageInstance();
+                            }
                           },
-                          color1: ccolor1,
-                          color2: ccolor2,
+                          color1: ccolor2,
+                          color2: ccolor1,
                           isborder: false,
                         )
                       : const SizedBox(
@@ -245,11 +295,12 @@ class _InitState extends State<Init> {
                     color: Colors.grey,
                   ),
                   const Text(
-                    "🤌 Elegir el idioma de la traducción ",
+                    "Selecciona Idioma De La Traducción. 😃 ",
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: ccolor2),
+                        fontStyle: FontStyle.italic,
+                        color: ccolor1),
                   ),
                   const Divider(
                     color: Colors.grey,
@@ -258,7 +309,7 @@ class _InitState extends State<Init> {
                     height: 6,
                   ),
                   DropdownButton<String>(
-                      hint: const Text('Elegir idioma una opción'),
+                      hint: const Text('Elegir idioma'),
                       value: selectedOption,
                       icon: const Icon(Icons.arrow_drop_down),
                       iconSize: 24,
@@ -283,39 +334,129 @@ class _InitState extends State<Init> {
                       boxShadow: [
                         BoxShadow(
                           color: Theme.of(context).colorScheme.shadow,
-                          spreadRadius: 2,
-                          blurRadius: 4,
+                          spreadRadius: 1,
+                          blurRadius: 2,
                           offset:
-                              const Offset(-1, 2), // changes position of shadow
+                              const Offset(-2, 1), // changes position of shadow
+                        ),
+                      ],
+                      border: Border.all(color: Theme.of(context).colorScheme.primaryContainer, style: BorderStyle.solid, width: 2)
+                    ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: InteractiveViewer(
+                              minScale: 0.5,
+                              maxScale: 4.0,
+                              child: Image.network(
+                                imageUrl,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            const Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Imagen Escaneada",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Divider(
+                              color: Colors.grey,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                ButtonWidget(
+                                  text: "Guardar",
+                                  icon: Icons.save,
+                                  onClicked: () async {
+                                    if (imagen.estado == 1) {
+                                      String url =
+                                          "https://repositorioprivado.onrender.com/descargarImagenEscaneado/${_imageName!}";
+
+                                      int retorno = await imagen
+                                          .subirimagenServidorinicial(
+                                              url, _imageName!);
+                                      if (retorno == 1) {
+                                        AlertaMensaje.showSnackBar(
+                                            // ignore: use_build_context_synchronously
+                                            context,
+                                            "Imagen Guardada correctamente!!",
+                                            Colors.orange);
+                                      } else {
+                                        AlertaMensaje.showSnackBar(
+                                            // ignore: use_build_context_synchronously
+                                            context,
+                                            "Error al Guardar la imagen",
+                                            errorColor);
+                                      }
+                                    } else {
+                                      AlertaMensaje.showSnackBar(
+                                          // ignore: use_build_context_synchronously
+                                          context,
+                                          "Error al Guardar la imagen",
+                                          errorColor);
+                                    }
+                                  },
+                                  color1: ccolor2,
+                                  color2: ccolor1,
+                                  isborder: false,
+                                ),
+                                ButtonWidget(
+                                    text: "Descargar",
+                                    icon: Icons.download_for_offline_rounded,
+                                    onClicked: () async {
+                                      if (imagen.estado == 1) {
+                                        String url =
+                                            "https://repositorioprivado.onrender.com/descargarImagenEscaneado/${_imageName!}";
+
+                                        int retorno =
+                                            await imagen.downloadFile2(url);
+                                        if (retorno == 1) {
+                                          AlertaMensaje.showSnackBar(
+                                              // ignore: use_build_context_synchronously
+                                              context,
+                                              "Imagen descargada correctamente!!",
+                                              Colors.orange);
+                                        } else {
+                                          AlertaMensaje.showSnackBar(
+                                              // ignore: use_build_context_synchronously
+                                              context,
+                                              "Error al descargar la imagen.",
+                                              errorColor);
+                                        }
+                                      } else {
+                                        AlertaMensaje.showSnackBar(context,
+                                            "Imagen no cargada", errorColor);
+                                      }
+                                    },
+                                    color1: ccolor2,
+                                    color2: ccolor1,
+                                    isborder: false)
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: InteractiveViewer(
-                          minScale: 0.5,
-                          maxScale: 4.0,
-                          child: Image.network(
-                            imageUrl,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 6),
-                    child: Text(
-                      "Imagen Escaneada",
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 1),
-                    ),
                   ),
                   const SizedBox(
-                    height: 12,
+                    height: 20,
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -324,36 +465,130 @@ class _InitState extends State<Init> {
                       boxShadow: [
                         BoxShadow(
                           color: Theme.of(context).colorScheme.shadow,
-                          spreadRadius: 2,
-                          blurRadius: 4,
+                          spreadRadius: 1,
+                          blurRadius: 2,
                           offset:
-                              const Offset(-1, 2), // changes position of shadow
+                              const Offset(-2, 1), // changes position of shadow
                         ),
                       ],
+                      border: Border.all(color: Theme.of(context).colorScheme.primaryContainer, style: BorderStyle.solid, width: 2)
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: InteractiveViewer(
-                          minScale: 0.5,
-                          maxScale: 4.0,
-                          child: Image.network(
-                            imageUrl2,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: InteractiveViewer(
+                              minScale: 0.5,
+                              maxScale: 4.0,
+                              child: Image.network(
+                                imageUrl2,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 6),
-                    child: Text(
-                      "Imagen Traducida",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1,
-                      ),
+                        Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              const Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Imagen Traducida",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w500,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(
+                                color: Colors.grey,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  ButtonWidget(
+                                      text: "Guardar",
+                                      icon: Icons.save,
+                                      onClicked: () async {
+                                        if (imagen.estado == 1) {
+                                          String url =
+                                              "https://repositorioprivado.onrender.com/descargarImagenTraducido/${_imageName!}";
+
+                                          int retorno = await imagen
+                                              .subirimagenServidorinicial(
+                                                  url, _imageName!);
+                                          if (retorno == 1) {
+                                            AlertaMensaje.showSnackBar(
+                                                // ignore: use_build_context_synchronously
+                                                context,
+                                                "Imagen Guardada correctamente!!",
+                                                Colors.orange);
+                                          } else {
+                                            AlertaMensaje.showSnackBar(
+                                                // ignore: use_build_context_synchronously
+                                                context,
+                                                "Error al Guardar la imagen",
+                                                errorColor);
+                                          }
+                                        } else {
+                                          AlertaMensaje.showSnackBar(
+                                              // ignore: use_build_context_synchronously
+                                              context,
+                                              "Error al Guardar la imagen",
+                                              errorColor);
+                                        }
+                                      },
+                                      color1: ccolor2,
+                                      color2: ccolor1,
+                                      isborder: false),
+                                  ButtonWidget(
+                                      text: "Descargar",
+                                      icon: Icons.download_for_offline_rounded,
+                                      onClicked: () async {
+                                        if (imagen.estado == 1) {
+                                          String url =
+                                              "https://repositorioprivado.onrender.com/descargarImagenTraducido/${_imageName!}";
+
+                                          int retorno =
+                                              await imagen.downloadFile2(url);
+                                          if (retorno == 1) {
+                                            AlertaMensaje.showSnackBar(
+                                                // ignore: use_build_context_synchronously
+                                                context,
+                                                "Imagen descargada correctamente!!",
+                                                Colors.orange);
+                                          } else {
+                                            AlertaMensaje.showSnackBar(
+                                                // ignore: use_build_context_synchronously
+                                                context,
+                                                "Error al descargar la imagen.",
+                                                errorColor);
+                                          }
+                                        } else {
+                                          AlertaMensaje.showSnackBar(context,
+                                              "Imagen no cargada", errorColor);
+                                        }
+                                      },
+                                      color1: ccolor2,
+                                      color2: ccolor1,
+                                      isborder: false)
+                                ],
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
                     ),
                   ),
                   const SizedBox(
@@ -361,11 +596,30 @@ class _InitState extends State<Init> {
                   ),
                   Container(
                     alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.0),
+                      color: Theme.of(context).colorScheme.background,
+                     boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.shadow,
+                          spreadRadius: 1,
+                          blurRadius: 2,
+                          offset:
+                              const Offset(-2, 1), // changes position of shadow
+                        ),
+                      ],
+                      border: Border.all(color: Theme.of(context).colorScheme.primaryContainer, style: BorderStyle.solid, width: 2)
+                    ),
                     child: Column(
                       children: [
                         const Text(
                           "Texto Capturado",
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500, fontSize: 18),
                         ),
                         const SizedBox(
                           height: 10,
@@ -373,13 +627,15 @@ class _InitState extends State<Init> {
                         Text(
                           textocapturado,
                           textAlign: TextAlign.justify,
+                          style: const TextStyle(fontSize: 16),
                         ),
                         const SizedBox(
                           height: 12,
                         ),
                         const Text(
                           "Texto Traducido",
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500, fontSize: 18),
                         ),
                         const SizedBox(
                           height: 10,
@@ -387,33 +643,107 @@ class _InitState extends State<Init> {
                         Text(
                           textotraducido,
                           textAlign: TextAlign.justify,
+                          style: const TextStyle(fontSize: 16),
                         ),
+                        const Divider(
+                          color: Colors.grey,
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            ButtonWidget(
+                              text: "",
+                              icon: Icons.picture_as_pdf,
+                              onClicked: () async {
+                                if (imagen.estado == 1) {
+                                  int retorno = await imagen.descargarpdf(
+                                      "pdf", "resultadosTraduccion.pdf");
+                                  if (retorno == 1) {
+                                    AlertaMensaje.showSnackBar(
+                                        // ignore: use_build_context_synchronously
+                                        context,
+                                        "Archivo pdf descargado correctamente!!",
+                                        Colors.orange);
+                                  } else {
+                                    AlertaMensaje.showSnackBar(
+                                        // ignore: use_build_context_synchronously
+                                        context,
+                                        "Error al descargar el archivo",
+                                        errorColor);
+                                  }
+                                } else {
+                                  AlertaMensaje.showSnackBar(
+                                      // ignore: use_build_context_synchronously
+                                      context,
+                                      "Error al descargar el archivo",
+                                      errorColor);
+                                }
+                              },
+                              color1: ccolor2,
+                              color2: ccolor1,
+                              isborder: false,
+                            ),
+                            ButtonWidget(
+                              text: "",
+                              icon: Icons.document_scanner_outlined,
+                              onClicked: () async {
+                                if (imagen.estado == 1) {
+                                  int retorno = await imagen.descargarpdf(
+                                      "pdf", "resultadosTraduccion.pdf");
+                                  if (retorno == 1) {
+                                    AlertaMensaje.showSnackBar(
+                                        // ignore: use_build_context_synchronously
+                                        context,
+                                        "Archivo txt descargado correctamente!!",
+                                        Colors.orange);
+                                  } else {
+                                    AlertaMensaje.showSnackBar(
+                                        // ignore: use_build_context_synchronously
+                                        context,
+                                        "Error al descargar el archivo",
+                                        errorColor);
+                                  }
+                                } else {
+                                  AlertaMensaje.showSnackBar(
+                                      // ignore: use_build_context_synchronously
+                                      context,
+                                      "Error al descargar el archivo",
+                                      errorColor);
+                                }
+                              },
+                              color1: ccolor2,
+                              color2: ccolor1,
+                              isborder: false,
+                            ),
+                          ],
+                        )
                       ],
                     ),
                   ),
                   Container(
-                    height: 300,
+                    height: 324,
                     alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
-                   
+                      borderRadius: BorderRadius.circular(12.0),
                       color: Theme.of(context).colorScheme.background,
+                       boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.shadow,
+                          spreadRadius: 1,
+                          blurRadius: 2,
+                          offset:
+                              const Offset(-2, 1), // changes position of shadow
+                        ),
+                      ],
+                      border: Border.all(color: Theme.of(context).colorScheme.primaryContainer, style: BorderStyle.solid, width: 2)
                     ),
                     child: ListView.builder(
                       itemCount: items2.length,
                       scrollDirection: Axis.vertical,
                       itemBuilder: (context, index) {
-                        // return ListTile(
-                        //   title: Text(
-                        //       "${items2[index]["contador"]!}  ${items2[index]["titulo"]!}",
-                        //       style: const TextStyle(
-                        //           fontWeight: FontWeight.bold, fontSize: 18)),
-                        //   subtitle: Text(items2[index]["descripcion"]!,
-                        //       style: TextStyle(color: Colors.grey[600])),
-                        //   trailing: const Icon(Icons.arrow_forward_ios,
-                        //       color: Colors.grey),
-                        //   titleAlignment: ListTileTitleAlignment.center,
-
-                        // );
                         return Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 0),
@@ -465,11 +795,4 @@ class TomarfotoProvider extends ChangeNotifier {
     _nombreFoto = nuevoNombre;
     notifyListeners();
   }
-}
-
-class Item {
-  final String title;
-  final String description;
-
-  Item(this.title, this.description);
 }

@@ -50,6 +50,7 @@ dependencies:
   motion_tab_bar: ^2.0.4
   http: ^1.2.2
   image: ^4.2.0
+  flutter_file_downloader: ^2.0.0
 
 dev_dependencies:
   flutter_test:

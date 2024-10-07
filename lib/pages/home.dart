@@ -82,7 +82,7 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: const Text("Inicio"),
         centerTitle: true,
-        backgroundColor: ccolor2,
+        backgroundColor: ccolor1,
       ),
       body: SingleChildScrollView(
         // padding: const EdgeInsets.all(8.0),

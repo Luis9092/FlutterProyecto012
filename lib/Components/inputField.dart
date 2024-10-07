@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:pro_graduacion/Components/colors.dart';
 
 class InputField extends StatelessWidget {
   final String hint;
@@ -26,7 +27,7 @@ class InputField extends StatelessWidget {
       child: Center(
         child: TextFormField(
           controller: controller,
-          cursorColor: Theme.of(context).colorScheme.secondary,
+          cursorColor: primaryColor,
           decoration: InputDecoration(
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
@@ -36,13 +37,13 @@ class InputField extends StatelessWidget {
               ),
               prefixIcon: Icon(icon),
               contentPadding: const EdgeInsets.symmetric(vertical: 20),
-              focusedBorder: OutlineInputBorder(
+              focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: primaryColor,
                 ),
               ),
               labelText: hint,
-              prefixIconColor: Theme.of(context).colorScheme.secondary,
+              prefixIconColor: primaryColor,
               errorBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                     color: Theme.of(context).colorScheme.error,

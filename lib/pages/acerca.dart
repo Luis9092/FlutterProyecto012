@@ -11,7 +11,7 @@ class AcercaDe extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Acerca De"),
         centerTitle: true,
-        backgroundColor: ccolor2,
+        backgroundColor: ccolor1,
       ),
       drawer: const NavigationDrawerWidget(),
       body: _cuerpo(context),

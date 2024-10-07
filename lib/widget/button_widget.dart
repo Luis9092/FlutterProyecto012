@@ -26,7 +26,7 @@ class ButtonWidget extends StatelessWidget {
             colors: [
               // Color.fromARGB(255, 0, 181, 160),
               // Color.fromARGB(255, 0, 255, 225)
-              color1, color2
+              color2, color1,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

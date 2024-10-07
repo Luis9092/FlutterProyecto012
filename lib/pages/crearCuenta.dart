@@ -282,15 +282,15 @@ class _CrearCuentaState extends State<CrearCuenta> {
                       readOnly: true,
                       decoration: InputDecoration(
                         labelText: "fecha Nacimiento",
-                        enabledBorder: OutlineInputBorder(
+                        enabledBorder: const OutlineInputBorder(
                           borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.outline,
+                              color: primaryColor,
                               width: 1,
                               style: BorderStyle.solid),
                         ),
-                        prefix: Icon(
+                        prefix: const Icon(
                           Icons.date_range_sharp,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: primaryColor,
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
